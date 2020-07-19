@@ -1,6 +1,6 @@
 package com.he.equipmentsclass;
 
-public class SensingDevices {
+public class ConcentratorDevices {
 	/*
 	 * 传感器设备 类，是电力仪表 和 测温集中器 的 父类
 	 * created in 2019 09 15

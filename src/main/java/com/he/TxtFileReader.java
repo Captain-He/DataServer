@@ -1,6 +1,5 @@
 package com.he;
 
-import com.he.equipmentsclass.DevLink;
 import com.he.equipmentsclass.PowerMeter;
 import com.he.equipmentsclass.TemperConcentrator;
 
@@ -33,7 +32,7 @@ public class TxtFileReader {
         return array;
     }
 
-    public ArrayList<ArrayList<RequestMsgFromTxt>> RequestMsg(String ip, int com , int dpuId, int wayId){
+    /*public ArrayList<ArrayList<RequestMsgFromTxt>> RequestMsg(String ip, int com , int dpuId, int wayId){
         DevLink devLink = new DevLink();
         ArrayList<DevLink> devList = devLink.txtlist();
         PowerMeter powerMeter = new PowerMeter();
@@ -96,5 +95,5 @@ public class TxtFileReader {
             }
         }
         return RmList;
-    }
+    }*/
 }
