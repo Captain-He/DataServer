@@ -1,8 +1,5 @@
 package com.he;
 
-import com.he.equipmentsclass.PowerMeter;
-import com.he.equipmentsclass.TemperConcentrator;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
