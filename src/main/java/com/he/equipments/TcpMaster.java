@@ -1,12 +1,8 @@
-package com.he.equipmentsclass;
+package com.he.equipments;
 
 import com.serotonin.modbus4j.ModbusFactory;
 import com.serotonin.modbus4j.ModbusMaster;
-import com.serotonin.modbus4j.exception.ModbusInitException;
-import com.serotonin.modbus4j.exception.ModbusTransportException;
 import com.serotonin.modbus4j.ip.IpParameters;
-import com.serotonin.modbus4j.msg.ModbusRequest;
-import com.serotonin.modbus4j.msg.ModbusResponse;
 
 public class TcpMaster {
     private static ModbusFactory modbusFactory;

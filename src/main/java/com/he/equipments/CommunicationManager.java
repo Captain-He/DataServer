@@ -1,4 +1,4 @@
-package com.he.equipmentsclass;
+package com.he.equipments;
 
 import java.util.Map;
 

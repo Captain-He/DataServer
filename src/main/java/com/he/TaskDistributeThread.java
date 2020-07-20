@@ -20,9 +20,9 @@ public class TaskDistributeThread extends Thread{
 		while(true){
 			try {
 				for(int i=0;i<trMsg.size();i++){
-					Request request = new Request(trMsg.get(i),receiveChannel);
-					channel.putRequest(request);
-					System.out.println("\n"+Thread.currentThread().getName()+"******装载Request完毕********");
+				//	Request request = new Request(trMsg.get(i),receiveChannel);
+				//	channel.putRequest(request);
+				//	System.out.println("\n"+Thread.currentThread().getName()+"******装载Request完毕********");
 				}
 				Thread.sleep(10000);
 			} catch (Exception e) {

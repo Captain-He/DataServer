@@ -1,5 +1,6 @@
-package com.he.equipmentsclass;
+package com.he.equipments;
 
+import com.he.Request;
 import com.he.TxtFileReader;
 
 import java.util.ArrayList;
@@ -72,7 +73,7 @@ public class ModbusSlave { //一个通信管理机通道COM模拟一个modbusSla
     }
     public ModbusSlave getModbusSlave(String communicationManagerID, int comID, String communicationManagerComIP) {
         TxtFileReader readTxt = new TxtFileReader();
-        String b[] = readTxt.toArrayByFileReader1(".\\src\\main\\java\\com\\he\\txt\\dev_link.txt");
+        String b[] = readTxt.toArrayByFileReader1(".\\src\\App\\java\\com\\he\\txt\\dev_link.txt");
         ModbusSlave newDev = new ModbusSlave();
         for (int i = 0; i < b.length; i++) { //i表示文件的行
             String temp[] = b[i].split(" "); //对每一行进行空格分割
@@ -92,7 +93,8 @@ public class ModbusSlave { //一个通信管理机通道COM模拟一个modbusSla
     }
     private ArrayList<PowerMeter> GetPowerMeters(String []tempMsg){
         TxtFileReader readTxt = new TxtFileReader();
-        String b [] =  readTxt.toArrayByFileReader1(".\\src\\main\\java\\com\\he\\txt\\concentrator_list.txt");
+        String b [] =  readTxt.toArrayByFileReader1(".\\src\\App\\java\\com\\he\\txt\\concentrator_list.txt");
+        String s [] =  readTxt.toArrayByFileReader1(".\\src\\App\\java\\com\\he\\txt\\sensor_dev_list.txt");
         ArrayList<PowerMeter> powerMeters = new ArrayList<>();
         for (int q = 7; q < tempMsg.length; q++) {
            int ConcentratorDeivceID  = Integer.parseInt(tempMsg[q]);
@@ -102,6 +104,7 @@ public class ModbusSlave { //一个通信管理机通道COM模拟一个modbusSla
                 if(temp[0].isEmpty()||temp[0]==null) continue;
 
                 if(100000<Integer.parseInt(temp[0])&&Integer.parseInt(temp[0])<200000&&ConcentratorDeivceID ==Integer.parseInt(temp[0]) ){
+                    System.out.format("%d###%d",ConcentratorDeivceID ,Integer.parseInt(temp[0]));
                     PowerMeter newDev = new PowerMeter();
                     newDev.setId(Integer.parseInt(temp[0]));
                     newDev.setComNum(temp[1]);
@@ -112,6 +115,8 @@ public class ModbusSlave { //一个通信管理机通道COM模拟一个modbusSla
                         readMessage[j-9] = ComIpSplit(temp[j]);
                     }
                     newDev.setMapRelation(readMessage);
+                    Request request = new Request(Integer.parseInt(temp[0]),Integer.parseInt(temp[7]),Integer.parseInt(temp[8]),readMessage,s);
+                    newDev.setRequest(request);
                     powerMeters.add(newDev);
                 }
             }
@@ -121,7 +126,8 @@ public class ModbusSlave { //一个通信管理机通道COM模拟一个modbusSla
     }
     private ArrayList<TemperConcentrator> GetTemperConcentrators(String []tempMsg){
         TxtFileReader readTxt = new TxtFileReader();
-        String b [] =  readTxt.toArrayByFileReader1(".\\src\\main\\java\\com\\he\\txt\\concentrator_list.txt");
+        String b [] =  readTxt.toArrayByFileReader1(".\\src\\App\\java\\com\\he\\txt\\concentrator_list.txt");
+        String s [] =  readTxt.toArrayByFileReader1(".\\src\\App\\java\\com\\he\\txt\\sensor_dev_list.txt");
         ArrayList<TemperConcentrator> temperConcentrators = new ArrayList<>();
         for (int q = 7; q < tempMsg.length; q++) {
             int ConcentratorDeivceID  = Integer.parseInt(tempMsg[q]);
@@ -130,6 +136,7 @@ public class ModbusSlave { //一个通信管理机通道COM模拟一个modbusSla
 
                 if(temp[0].isEmpty()||temp[0]==null) continue;
                 if(300000<Integer.parseInt(temp[0])&&Integer.parseInt(temp[0])<400000&&ConcentratorDeivceID ==Integer.parseInt(temp[0])){
+                    System.out.format("%d###%d",ConcentratorDeivceID ,Integer.parseInt(temp[0]));
                     TemperConcentrator newDev = new TemperConcentrator();
                     newDev.setId(Integer.parseInt(temp[0]));
                     newDev.setComNum(temp[1]);
@@ -139,6 +146,8 @@ public class ModbusSlave { //一个通信管理机通道COM模拟一个modbusSla
                     for(int j=9;j<Integer.parseInt(temp[8])+9;j++){
                         readMessage[j-9] = ComIpSplit(temp[j]);
                     }
+                    Request request = new Request(Integer.parseInt(temp[0]),Integer.parseInt(temp[7]),Integer.parseInt(temp[8]),readMessage,s);
+                    newDev.setRequest(request);
                     newDev.setMapRelation(readMessage);
                     temperConcentrators.add(newDev);
                 }

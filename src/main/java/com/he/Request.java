@@ -7,12 +7,14 @@ public class Request {
 	private int ConcentratorDevideID;
 	private int SlaveID;
 	private int SegmentNum;//分段数量
-	//private ArrayList<SegmentRequest>Segment;
-	private final ArrayList<RequestMsgFromTxt> childRequest;
-	private final ReceiveChannel receiveChannel;
-	public Request(ArrayList<RequestMsgFromTxt> child, ReceiveChannel receiveChannel){
-		this.childRequest = child;
-		this.receiveChannel = receiveChannel;
+	private String [][]RequestSegment;
+	public Resolver resolver;//解析器
+	public Request( int ConcentratorDevideID,int SlaveID,int SegmentNum,String [][]RequestSegment,String []relolverFromTxt){
+		this.ConcentratorDevideID = ConcentratorDevideID;
+		this.SlaveID = SlaveID;
+		this.SegmentNum = SegmentNum;//分段数量
+		this.RequestSegment = RequestSegment;
+		this.resolver = new Resolver(ConcentratorDevideID,relolverFromTxt);
 	}
 	public void execute(){
 		/*String res = "";

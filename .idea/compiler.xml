@@ -9,5 +9,8 @@
         <module name="modbus4j" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="modbus4j" target="1.7" />
+    </bytecodeTargetLevel>
   </component>
 </project>

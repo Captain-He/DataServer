@@ -1,8 +1,4 @@
-package com.he.equipmentsclass;
-
-import com.he.TxtFileReader;
-
-import java.util.ArrayList;
+package com.he.equipments;
 
 public class TemperConcentrator extends ConcentratorDevices {
 

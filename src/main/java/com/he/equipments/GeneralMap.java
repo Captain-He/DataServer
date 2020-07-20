@@ -1,4 +1,4 @@
-package com.he.equipmentsclass;
+package com.he.equipments;
 
 public class GeneralMap {
 	private int id;

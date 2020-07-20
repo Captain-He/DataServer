@@ -1,15 +1,15 @@
 package com.he;
 
-import com.he.equipmentsclass.CommunicationManager;
-import com.he.equipmentsclass.ModbusSlave;
-import com.he.equipmentsclass.PowerMeter;
-import com.he.equipmentsclass.TemperConcentrator;
+import com.he.equipments.CommunicationManager;
+import com.he.equipments.ModbusSlave;
+import com.he.equipments.PowerMeter;
+import com.he.equipments.TemperConcentrator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class main {
+public class App {
     public static void main(String[] args){
        // CommunicationManager communicationManager = new CommunicationManager();
         ArrayList<CommunicationManager>communicationManagers =  GetCommunicationManagers();
@@ -23,16 +23,18 @@ public class main {
                 if(modbusSlave.getValue().getId()!=0){
                     System.out.println(modbusSlave.getKey() + "：" + modbusSlave.getValue().getDevNum());
                     for(PowerMeter powerMeter:powerMeters){
-                        System.out.println(powerMeter.getId());
+                       System.out.println(powerMeter.getId());
+                        //toprint(powerMeter.getMapRelation());
+                        System.out.print(powerMeter.getRequest().resolver.resolverMap.size()+"@");
                     }
                     for(TemperConcentrator temperConcentrator:temperConcentrators){
-                        System.out.println(temperConcentrator.getId());
+                      //  toprint(temperConcentrator.getMapRelation());
+                        System.out.print(temperConcentrator.getRequest().resolver.resolverMap.size()+"@@@");
                     }
                 }
 
             }
         }
-
 
 //        ModbusMaster tcpMaster = TcpMaster.getTcpMaster("127.0.0.1",502);
 //        Modbus4jReader reader = new Modbus4jReader(tcpMaster);
@@ -56,7 +58,7 @@ public class main {
     }
     public static ArrayList<CommunicationManager> GetCommunicationManagers(){
         TxtFileReader readTxt = new TxtFileReader();
-        String b [] =  readTxt.toArrayByFileReader1(".\\src\\main\\java\\com\\he\\txt\\dpu_list.txt");
+        String b [] =  readTxt.toArrayByFileReader1(".\\src\\App\\java\\com\\he\\txt\\dpu_list.txt");
         ArrayList<CommunicationManager> communicationManagers = new ArrayList<>();
         for(int i=0;i<b.length;i++) {
             String temp[] = b[i].split(" ");
@@ -89,5 +91,12 @@ public class main {
     //判断字符串a 是否与 字符串b 相等
     public static boolean isEquals(String a,String b){
         return a.replaceAll("\n", "").replaceAll(" ", "").equals(b);
+    }
+    public  static void toprint(String a[][]){
+        for(int i=0;i<a.length;i++)
+            for(int j=0;j<a[i].length;j++){
+            System.out.print(a[i][j]+" ");
+            }
+            System.out.println();
     }
 }
