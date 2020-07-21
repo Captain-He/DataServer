@@ -1,6 +1,6 @@
 package com.he.equipments;
 
-import com.he.Request;
+import com.he.RequestMsg;
 
 public class ConcentratorDevices {
 	/*
@@ -22,7 +22,8 @@ public class ConcentratorDevices {
 	private int slaveAddress; //从站地址
 	private int readTimes;
 	private String mapRelation[][]; //总线/IP/端口映射关系
-	private Request request;
+	private RequestMsg requestMsg;
+
 	public void setId(int id){
 		this.id = id;
 	}
@@ -103,11 +104,11 @@ public class ConcentratorDevices {
 		return mapRelation;
 	}
 
-	public void setRequest(Request request) {
-		this.request = request;
+	public void setRequestMsg(RequestMsg requestMsg) {
+		this.requestMsg = requestMsg;
 	}
 
-	public Request getRequest() {
-		return request;
+	public RequestMsg getRequestMsg() {
+		return requestMsg;
 	}
 }

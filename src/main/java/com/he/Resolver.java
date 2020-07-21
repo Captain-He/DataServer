@@ -4,9 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Resolver {
-
-    Map<String,String>resolverMap = new HashMap<>();
+public final Map<String,String>resolverMap;
     public Resolver(int ConcentratorDevideID, String []resolverFromTxt){
+        Map<String,String>resolverMap = new HashMap<>();
         if(ConcentratorDevideID>100000&&ConcentratorDevideID<200000){
             for(int i=0;i<resolverFromTxt.length;i++){
                 if(resolverFromTxt[i] == null||resolverFromTxt[i] == "")continue;
@@ -27,6 +27,7 @@ public class Resolver {
                 }
             }
         }
+        this.resolverMap = resolverMap;
     }
     //串口编号/IP地址/端口 分割
     private static String[] ComIpSplit(String str){

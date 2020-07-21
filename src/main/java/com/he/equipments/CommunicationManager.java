@@ -1,5 +1,6 @@
 package com.he.equipments;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 public class CommunicationManager {
@@ -8,7 +9,7 @@ public class CommunicationManager {
 	private int pcId; //PC编号(如是C端)
 	private int scNum;//串行通道数量
 	private String mapRelation[][]; //总线/IP/端口映射关系
-	private Map<String,ModbusSlave> modbusSlaves;
+	private ArrayList<ModbusSlave> modbusSlaves;
 
 	public void setId(String id){
 		this.id = (int)Double.parseDouble(id);
@@ -40,10 +41,10 @@ public class CommunicationManager {
 	public String [][]getMapRelation(){
 		return mapRelation;
 	}
-	public void setModbusSlaves(Map<String,ModbusSlave> modbusSlaves) {
+	public void setModbusSlaves(ArrayList<ModbusSlave> modbusSlaves) {
 		this.modbusSlaves = modbusSlaves;
 	}
-	public Map<String,ModbusSlave> getModbusSlaves() {
+	public ArrayList<ModbusSlave> getModbusSlaves() {
 		return modbusSlaves;
 	}
 

@@ -20,7 +20,7 @@ public class TaskDistributeThread extends Thread{
 		while(true){
 			try {
 				for(int i=0;i<trMsg.size();i++){
-				//	Request request = new Request(trMsg.get(i),receiveChannel);
+				//	RequestMsg request = new RequestMsg(trMsg.get(i),receiveChannel);
 				//	channel.putRequest(request);
 				//	System.out.println("\n"+Thread.currentThread().getName()+"******装载Request完毕********");
 				}
@@ -35,7 +35,7 @@ public class TaskDistributeThread extends Thread{
 			public void run() {
 				try {
 					for(int i=0;i<trMsg.size();i++){
-						Request request = new Request(trMsg.get(i));
+						RequestMsg request = new RequestMsg(trMsg.get(i));
 						channel.putRequest(request);
 						System.out.println(Thread.currentThread().getName()+"******装载Request完毕********");
 					}

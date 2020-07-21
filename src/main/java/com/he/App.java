@@ -1,102 +1,151 @@
 package com.he;
 
-import com.he.equipments.CommunicationManager;
-import com.he.equipments.ModbusSlave;
-import com.he.equipments.PowerMeter;
-import com.he.equipments.TemperConcentrator;
+import com.he.equipments.*;
 
+import java.security.AllPermission;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class App {
-    public static void main(String[] args){
-       // CommunicationManager communicationManager = new CommunicationManager();
-        ArrayList<CommunicationManager>communicationManagers =  GetCommunicationManagers();
-        for(CommunicationManager communicationManager:communicationManagers){
-           // System.out.println(communicationManager.getId());
-            Map<String,ModbusSlave> modbusSlaves = communicationManager.getModbusSlaves();
-            for (Map.Entry<String,ModbusSlave> modbusSlave: modbusSlaves.entrySet()) {
+public class
 
-                ArrayList<PowerMeter> powerMeters = modbusSlave.getValue().getPowerMeters();
-                ArrayList<TemperConcentrator> temperConcentrators = modbusSlave.getValue().getTemperConcentrator();
-                if(modbusSlave.getValue().getId()!=0){
-                    System.out.println(modbusSlave.getKey() + "：" + modbusSlave.getValue().getDevNum());
-                    for(PowerMeter powerMeter:powerMeters){
-                       System.out.println(powerMeter.getId());
-                        //toprint(powerMeter.getMapRelation());
-                        System.out.print(powerMeter.getRequest().resolver.resolverMap.size()+"@");
-                    }
-                    for(TemperConcentrator temperConcentrator:temperConcentrators){
-                      //  toprint(temperConcentrator.getMapRelation());
-                        System.out.print(temperConcentrator.getRequest().resolver.resolverMap.size()+"@@@");
-                    }
-                }
-
-            }
+App {
+    public static void main(String[] args) {
+        ArrayList<CommunicationManager> communicationManagers = GetCommunicationManagers();
+        for (CommunicationManager communicationManager : communicationManagers) {
+            //开始遍历通信管理机，一个通信管理机对应多个ModbusSlave(通道抽象为ModbusSlave，下边连接多个集中器设备),
+            // 一个ModbusSlave对应一个ModbusTcpMaster，TcpMaster任务分发
+            Channel channel = new Channel(communicationManager.getScNum());//此处参数为工人线程数量由通道数量决定，一个通信管理机对应一个channel
+            // temp.length为一个通信管理机的通道数量
+            ReceiveChannel receiveChannel = new ReceiveChannel(communicationManager.getScNum());
+            channel.startWorkers();
+            receiveChannel.startWorkers();
+            new Client(channel, receiveChannel, communicationManager.getModbusSlaves()).start();
         }
-
-//        ModbusMaster tcpMaster = TcpMaster.getTcpMaster("127.0.0.1",502);
-//        Modbus4jReader reader = new Modbus4jReader(tcpMaster);
-//        try {
-//            short[] a = reader.readHoldingRegister(1,0,11);
-//            for(int i=0;i<a.length;i++){
-//                System.out.print(a[i]);
-//            }
-//            System.out.print("/n");
-//            short[] b = reader.readHoldingRegister(2,20,60);
-//            for(int i=0;i<b.length;i++){
-//                System.out.print(b[i]);
-//            }
-//        } catch (ModbusTransportException e) {
-//            e.printStackTrace();
-//        } catch (ErrorResponseException e) {
-//            e.printStackTrace();
-//        } catch (ModbusInitException e) {
-//            e.printStackTrace();
-//        }
     }
-    public static ArrayList<CommunicationManager> GetCommunicationManagers(){
+
+    public static ArrayList<CommunicationManager> GetCommunicationManagers() {
         TxtFileReader readTxt = new TxtFileReader();
-        String b [] =  readTxt.toArrayByFileReader1(".\\src\\App\\java\\com\\he\\txt\\dpu_list.txt");
+        String b[] = readTxt.toArrayByFileReader1(".\\src\\main\\java\\com\\he\\txt\\dpu_list.txt");
         ArrayList<CommunicationManager> communicationManagers = new ArrayList<>();
-        for(int i=0;i<b.length;i++) {
+        for (int i = 0; i < b.length; i++) {
             String temp[] = b[i].split(" ");
             CommunicationManager newDev = new CommunicationManager();
-            if(temp[0].isEmpty()||temp[0]==null) continue;
+            if (temp[0].isEmpty() || temp[0] == null) continue;
             newDev.setId(temp[0]);
             newDev.setTerminal(temp[1]);
             newDev.setScNum(temp[2]);
-            String[][] comIp=new String[temp.length-3][3];
-            Map<String,ModbusSlave> modbusSlaves = new HashMap<>();
-            for(int j=3;j<Integer.parseInt(temp[2])+3;j++){
-                comIp[j-3] = ComIpSplit(temp[j]);
-                ModbusSlave modbusSlave = new ModbusSlave();
-
-                modbusSlaves.put(temp[j],modbusSlave.getModbusSlave(temp[0],j-2,comIp[j-3][1]));
+            String[][] comIp = new String[temp.length - 3][3];
+            ArrayList<ModbusSlave> modbusSlaves = new ArrayList<>();
+            for (int j = 3; j < Integer.parseInt(temp[2]) + 3; j++) {
+                comIp[j - 3] = ComIpSplit(temp[j]);
+                ModbusSlave modbusSlave = getModbusSlave(temp[0], j - 2, comIp[j - 3][1], Integer.parseInt(comIp[j - 3][2]));
+                if (modbusSlave != null) {
+                    modbusSlaves.add(modbusSlave);
+                }
             }
             newDev.setModbusSlaves(modbusSlaves);
             communicationManagers.add(newDev);
         }
         return communicationManagers;
     }
+
+    public static ModbusSlave getModbusSlave(String communicationManagerID, int id, String communicationManagerComIP, int chuanId) {
+        TxtFileReader readTxt = new TxtFileReader();
+        String b[] = readTxt.toArrayByFileReader1(".\\src\\main\\java\\com\\he\\txt\\dev_link.txt");
+        ModbusSlave newDev = new ModbusSlave();
+        for (int i = 0; i < b.length; i++) { //i表示文件的行
+            String temp[] = b[i].split(" "); //对每一行进行空格分割
+            if (temp[0].isEmpty() || temp[0] == null) continue;
+            if (isEquals(communicationManagerID, temp[4]) && id == Integer.parseInt(temp[5])) {
+                newDev.setId(id);
+                newDev.setCommunicationMaganerID(Integer.parseInt(temp[4]));
+                newDev.setDevNum(Integer.parseInt(temp[6]));
+                newDev.setCommunicationManagerComIP(communicationManagerComIP);
+                newDev.setChuanID(chuanId);
+                newDev.setPowerMeters(GetPowerMeters(communicationManagerComIP, chuanId, temp));
+                newDev.setTemperConcentrator(GetTemperConcentrators(communicationManagerComIP, chuanId, temp));
+                break;
+            }
+        }
+        return newDev;
+    }
+    private static ArrayList<PowerMeter> GetPowerMeters(String communicationManagerComIP, int chuanId, String[] tempMsg) {
+        TxtFileReader readTxt = new TxtFileReader();
+        String b[] = readTxt.toArrayByFileReader1(".\\src\\main\\java\\com\\he\\txt\\concentrator_list.txt");
+        String s[] = readTxt.toArrayByFileReader1(".\\src\\main\\java\\com\\he\\txt\\sensor_dev_list.txt");
+        ArrayList<PowerMeter> powerMeters = new ArrayList<>();
+        for (int q = 7; q < tempMsg.length; q++) {
+            int ConcentratorDeivceID = Integer.parseInt(tempMsg[q]);
+            for (int i = 0; i < b.length; i++) { //i表示文件的行
+                String temp[] = b[i].split(" "); //对每一行进行空格分割
+
+                if (temp[0].isEmpty() || temp[0] == null) continue;
+
+                if (100000 < Integer.parseInt(temp[0]) && Integer.parseInt(temp[0]) < 200000 && ConcentratorDeivceID == Integer.parseInt(temp[0])) {
+                    System.out.format("%d###%d", ConcentratorDeivceID, Integer.parseInt(temp[0]));
+                    PowerMeter newDev = new PowerMeter();
+                    newDev.setId(Integer.parseInt(temp[0]));
+                    newDev.setComNum(temp[1]);
+                    newDev.setSlaveAddress(Integer.parseInt(temp[7]));
+                    newDev.setReadTimes(Integer.parseInt(temp[8]));
+                    String[][] readMessage = new String[temp.length - 9][4];
+                    for (int j = 9; j < Integer.parseInt(temp[8]) + 9; j++) {
+                        readMessage[j - 9] = ComIpSplit(temp[j]);
+                    }
+                    newDev.setMapRelation(readMessage);
+                    RequestMsg requestMsg = new RequestMsg(communicationManagerComIP, chuanId, Integer.parseInt(temp[0]), Integer.parseInt(temp[7]), Integer.parseInt(temp[8]), readMessage, s);
+                    newDev.setRequestMsg(requestMsg);
+                    powerMeters.add(newDev);
+                }
+            }
+        }
+
+        return powerMeters;
+    }
+
+    private static ArrayList<TemperConcentrator> GetTemperConcentrators(String communicationManagerComIP, int chuanId, String[] tempMsg) {
+        TxtFileReader readTxt = new TxtFileReader();
+        String b[] = readTxt.toArrayByFileReader1(".\\src\\main\\java\\com\\he\\txt\\concentrator_list.txt");
+        String sensor_dev_list[] = readTxt.toArrayByFileReader1(".\\src\\main\\java\\com\\he\\txt\\sensor_dev_list.txt");
+        ArrayList<TemperConcentrator> temperConcentrators = new ArrayList<>();
+        for (int q = 7; q < tempMsg.length; q++) {
+            int ConcentratorDeivceID = Integer.parseInt(tempMsg[q]);
+            for (int i = 0; i < b.length; i++) { //i表示文件的行
+                String temp[] = b[i].split(" "); //对每一行进行空格分割
+                if (temp[0].isEmpty() || temp[0] == null) continue;
+                if (300000 < Integer.parseInt(temp[0]) && Integer.parseInt(temp[0]) < 400000 && ConcentratorDeivceID == Integer.parseInt(temp[0])) {
+                    TemperConcentrator newDev = new TemperConcentrator();
+                    newDev.setId(Integer.parseInt(temp[0]));
+                    newDev.setComNum(temp[1]);
+                    newDev.setSlaveAddress(Integer.parseInt(temp[7]));
+                    newDev.setReadTimes(Integer.parseInt(temp[8]));
+                    String[][] readMessage = new String[temp.length - 9][4];
+                    for (int j = 9; j < Integer.parseInt(temp[8]) + 9; j++) {
+                        readMessage[j - 9] = ComIpSplit(temp[j]);
+                    }
+                    RequestMsg requestMsg = new RequestMsg(communicationManagerComIP, chuanId, Integer.parseInt(temp[0]), Integer.parseInt(temp[7]), Integer.parseInt(temp[8]), readMessage, sensor_dev_list);
+                    newDev.setRequestMsg(requestMsg);
+                    newDev.setMapRelation(readMessage);
+                    temperConcentrators.add(newDev);
+                }
+            }
+        }
+        return temperConcentrators;
+    }
+
     //串口编号/IP地址/端口 分割
-    public static String[] ComIpSplit(String str){
+    private static String[] ComIpSplit(String str) {
         String splitArray[] = {};
-        if((str != null)&&(!isEquals(str,"-"))){
+        if ((str != null) && (!isEquals(str, "-"))) {
             splitArray = str.split("/");
         }
         return splitArray;
     }
+
     //判断字符串a 是否与 字符串b 相等
-    public static boolean isEquals(String a,String b){
+    public static boolean isEquals(String a, String b) {
         return a.replaceAll("\n", "").replaceAll(" ", "").equals(b);
     }
-    public  static void toprint(String a[][]){
-        for(int i=0;i<a.length;i++)
-            for(int j=0;j<a[i].length;j++){
-            System.out.print(a[i][j]+" ");
-            }
-            System.out.println();
-    }
 }
+

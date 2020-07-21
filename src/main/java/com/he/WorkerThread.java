@@ -10,8 +10,12 @@ public class WorkerThread extends Thread{
 	@Override
 	public void run(){
 		while(true){
-			Request request = channel.takeRequest();
-			request.execute();
+			OnceRequestTask onceRequestTask = channel.takeRequest();
+			try {
+				onceRequestTask.execute();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 }

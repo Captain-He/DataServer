@@ -9,7 +9,7 @@ import com.serotonin.modbus4j.msg.*;
 
 public class Modbus4jWriter {
     // 获取Master
-    //private static ModbusMaster tcpMaster = TcpMaster.getMaster();
+    //private static ModbusMaster tcpMaster = Client.getMaster();
     private ModbusMaster tcpMaster = null;
 
     public Modbus4jWriter(ModbusMaster master) {
