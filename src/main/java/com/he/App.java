@@ -1,11 +1,12 @@
 package com.he;
 
 import com.he.equipments.*;
+import com.he.thread.ReceiveChannel;
+import com.he.thread.RequestChannel;
+import com.he.thread.RequestMsg;
+import com.he.thread.TxtFileReader;
 
-import java.security.AllPermission;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class
 
@@ -15,13 +16,17 @@ App {
         for (CommunicationManager communicationManager : communicationManagers) {
             //开始遍历通信管理机，一个通信管理机对应多个ModbusSlave(通道抽象为ModbusSlave，下边连接多个集中器设备),
             // 一个ModbusSlave对应一个ModbusTcpMaster，TcpMaster任务分发
-            Channel channel = new Channel(communicationManager.getScNum());//此处参数为工人线程数量由通道数量决定，一个通信管理机对应一个channel
+            RequestChannel requestChannel = new RequestChannel(communicationManager.getScNum());//此处参数为工人线程数量由通道数量决定，一个通信管理机对应一个channel
             // temp.length为一个通信管理机的通道数量
             ReceiveChannel receiveChannel = new ReceiveChannel(communicationManager.getScNum());
-            channel.startWorkers();
+            requestChannel.startWorkers();
             receiveChannel.startWorkers();
-            new Client(channel, receiveChannel, communicationManager.getModbusSlaves()).start();
+            new Client(requestChannel, receiveChannel, communicationManager.getModbusSlaves()).start();
         }
+      /* String str ="200026 300022  2 1/2/1/0.10000/SHORT 4/2/1/1.00000/USHORT " ;
+        String []splitArray = str.replaceAll("  "," ").split(" ");
+        for(int i=0;i<splitArray.length;i++)
+            System.out.println(splitArray[i]+"#");*/
     }
 
     public static ArrayList<CommunicationManager> GetCommunicationManagers() {
@@ -83,7 +88,7 @@ App {
                 if (temp[0].isEmpty() || temp[0] == null) continue;
 
                 if (100000 < Integer.parseInt(temp[0]) && Integer.parseInt(temp[0]) < 200000 && ConcentratorDeivceID == Integer.parseInt(temp[0])) {
-                    System.out.format("%d###%d", ConcentratorDeivceID, Integer.parseInt(temp[0]));
+                   // System.out.format("%d###%d", ConcentratorDeivceID, Integer.parseInt(temp[0]));
                     PowerMeter newDev = new PowerMeter();
                     newDev.setId(Integer.parseInt(temp[0]));
                     newDev.setComNum(temp[1]);

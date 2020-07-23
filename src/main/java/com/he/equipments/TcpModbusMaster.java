@@ -1,8 +1,7 @@
 package com.he.equipments;
 
-import com.he.RequestMsg;
+import com.he.thread.RequestMsg;
 import com.serotonin.modbus4j.ModbusFactory;
-import com.serotonin.modbus4j.ModbusMaster;
 import com.serotonin.modbus4j.ip.IpParameters;
 import com.serotonin.modbus4j.ip.tcp.TcpMaster;
 
@@ -27,13 +26,11 @@ public class TcpModbusMaster extends com.serotonin.modbus4j.ip.tcp.TcpMaster{
         if(modbusSlave.getPowerMeters()!=null){
             for (int i = 0; i < modbusSlave.getPowerMeters().size(); i++) {
                 requestMsgs.add(modbusSlave.getPowerMeters().get(i).getRequestMsg());
-                System.out.print("~");
             }
         }
         if(modbusSlave.getTemperConcentrator()!=null){
             for (int i = 0; i < modbusSlave.getTemperConcentrator().size(); i++) {
                 requestMsgs.add(modbusSlave.getTemperConcentrator().get(i).getRequestMsg());
-                System.out.print("~");
             }
         }
         this.requestMsgs = requestMsgs;

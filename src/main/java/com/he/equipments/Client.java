@@ -1,18 +1,18 @@
 package com.he.equipments;
 
-import com.he.Channel;
-import com.he.OnceRequestTask;
-import com.he.ReceiveChannel;
-import com.he.RequestMsg;
+import com.he.thread.RequestChannel;
+import com.he.thread.OnceRequestTask;
+import com.he.thread.ReceiveChannel;
+import com.he.thread.RequestMsg;
 import com.serotonin.modbus4j.ip.IpParameters;
 import java.util.ArrayList;
 
 public class Client extends Thread{
-    private final Channel channel;
+    private final RequestChannel requestChannel;
     private final ReceiveChannel receiveChannel;
     private final ArrayList<TcpModbusMaster> tcpModbusMasters;
 
-    public Client(Channel channel, ReceiveChannel receiveChannel,ArrayList<ModbusSlave> modbusSlaves) {
+    public Client(RequestChannel requestChannel, ReceiveChannel receiveChannel, ArrayList<ModbusSlave> modbusSlaves) {
          ArrayList<TcpModbusMaster> tcpModbusMasters = new ArrayList<>();
         for (ModbusSlave modbusSlave: modbusSlaves) {
             //开始遍历modbusSlave
@@ -23,7 +23,7 @@ public class Client extends Thread{
             tcpModbusMasters.add(new TcpModbusMaster(params, true,modbusSlave));// 获取ModbusMaster对象
         }
         this.tcpModbusMasters = tcpModbusMasters;
-        this.channel = channel;
+        this.requestChannel = requestChannel;
         this.receiveChannel = receiveChannel;
     }
     @Override
@@ -33,7 +33,7 @@ public class Client extends Thread{
                 for(TcpModbusMaster tcpModbusMaster : tcpModbusMasters){
                     ArrayList<RequestMsg>requestMsgs = tcpModbusMaster.getRequestMsgs();
                     for(int i=0;i<requestMsgs.size();i++){
-                        channel.putRequest(new OnceRequestTask(tcpModbusMaster.getTcpMaster(),requestMsgs.get(i)));
+                        requestChannel.putRequest(new OnceRequestTask(tcpModbusMaster.getTcpMaster(),requestMsgs.get(i),receiveChannel));
                     }
                 }
                // System.out.println("\n" + Thread.currentThread().getName() + "******装载Request完毕********");

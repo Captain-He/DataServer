@@ -1,8 +1,5 @@
 package com.he.equipments;
 
-import com.he.RequestMsg;
-import com.he.TxtFileReader;
-
 import java.util.ArrayList;
 
 public class ModbusSlave { //一个通信管理机通道COM模拟一个modbusSlave

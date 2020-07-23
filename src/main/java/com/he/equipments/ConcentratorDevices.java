@@ -1,6 +1,6 @@
 package com.he.equipments;
 
-import com.he.RequestMsg;
+import com.he.thread.RequestMsg;
 
 public class ConcentratorDevices {
 	/*
