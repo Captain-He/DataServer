@@ -1,41 +1,28 @@
 package com.he.equipments;
 
-import com.he.thread.RequestChannel;
-import com.he.thread.OnceRequestTask;
-import com.he.thread.ReceiveChannel;
-import com.he.thread.RequestMsg;
+import com.he.thread.Channel;
+import com.serotonin.modbus4j.ModbusFactory;
 import com.serotonin.modbus4j.ip.IpParameters;
-import java.util.ArrayList;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import com.serotonin.modbus4j.ip.tcp.TcpMaster;
 
 public class Client extends Thread{
-    private final RequestChannel requestChannel;
-    private final ReceiveChannel receiveChannel;
-    private final ArrayList<TcpModbusMaster> tcpModbusMasters;
-    private final ConcurrentLinkedQueue<String> sqlQueue;
-    public Client(RequestChannel requestChannel, ReceiveChannel receiveChannel, ConcurrentLinkedQueue<String> sqlQueue ,ArrayList<ModbusSlave> modbusSlaves) {
-         ArrayList<TcpModbusMaster> tcpModbusMasters = new ArrayList<>();
-        for (ModbusSlave modbusSlave: modbusSlaves) {
-            //开始遍历modbusSlave
-            if(modbusSlave.getId() == 0)continue;
-            IpParameters params = new IpParameters();
-            params.setHost(modbusSlave.getCommunicationManagerComIP());// 设置ip
-            params.setPort(modbusSlave.getChuanID());
-            tcpModbusMasters.add(new TcpModbusMaster(params, true,modbusSlave));// 获取ModbusMaster对象
-        }
-        this.tcpModbusMasters = tcpModbusMasters;
-        this.requestChannel = requestChannel;
-        this.receiveChannel = receiveChannel;
-        this.sqlQueue = sqlQueue;
+    private final Channel channel;
+    private final CommunicationManager communicationManager;
+    public Client(Channel channel,CommunicationManager communicationManager) {
+        this.communicationManager = communicationManager;
+        this.channel = channel;
     }
     @Override
     public void run() {
         while (true) {
             try {
-                for(TcpModbusMaster tcpModbusMaster : tcpModbusMasters){
-                    ArrayList<RequestMsg>requestMsgs = tcpModbusMaster.getRequestMsgs();
-                    for(int i=0;i<requestMsgs.size();i++){
-                        requestChannel.putRequest(new OnceRequestTask(tcpModbusMaster.getTcpMaster(),requestMsgs.get(i),receiveChannel, sqlQueue ));
+                for(CommunicationManagerCom communicationManagerCom : communicationManager.getCommunicationManagerComs()){
+                    if(communicationManagerCom.getDevNum() == 0)continue;
+                    for(PowerMeter powerMeter :communicationManagerCom.getPowerMeters()){
+                        channel.putRequest(powerMeter);
+                    }
+                    for(TemperConcentrator temperConcentrator :communicationManagerCom.getTemperConcentrator()){
+                        channel.putRequest(temperConcentrator );
                     }
                 }
             } catch (Exception e) {

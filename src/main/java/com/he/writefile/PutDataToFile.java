@@ -6,8 +6,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * 将队列中的数据写进文件中（消费者）
- *
- * @author liam
  */
 
 public class PutDataToFile implements Runnable {
@@ -34,5 +32,4 @@ public class PutDataToFile implements Runnable {
             }
         }
     }
-
 }

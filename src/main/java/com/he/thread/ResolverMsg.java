@@ -38,7 +38,7 @@ public final Map<String,String>resolverMap;
         return splitArray;
     }
     //判断字符串a 是否与 字符串b 相等
-    public  static boolean isEquals(String a,String b){
+    private static boolean isEquals(String a,String b){
         return a.replaceAll("\n", "").replaceAll(" ", "").equals(b);
     }
 }

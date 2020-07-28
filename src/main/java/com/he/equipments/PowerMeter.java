@@ -1,6 +1,11 @@
 package com.he.equipments;
 
-public class PowerMeter extends ConcentratorDevices {
+import com.serotonin.modbus4j.ip.tcp.TcpMaster;
 
+public class PowerMeter extends ConcentratorDevice {
+
+    public PowerMeter(TcpMaster tcpModbusMaster){
+        super(tcpModbusMaster);
+    }
 }
 
