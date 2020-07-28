@@ -14,11 +14,7 @@ public class ResolverThread extends Thread {
     public void run(){
         while(true){
             OnceResolveTask onceRequestTask = receiveChannel.takeOnceResolveTask();
-            try {
-                onceRequestTask.execute();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            onceRequestTask.execute();
         }
     }
 }

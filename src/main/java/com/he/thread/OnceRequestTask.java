@@ -6,15 +6,18 @@ import com.serotonin.modbus4j.exception.ModbusTransportException;
 import com.serotonin.modbus4j.ip.tcp.TcpMaster;
 
 import java.sql.SQLException;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class OnceRequestTask extends Thread {
     private  TcpMaster tcpMaster;
     private  RequestMsg requestMsg;
     private ReceiveChannel receiveChannel;
-    public OnceRequestTask(TcpMaster tcpMaster,RequestMsg requestMsg,ReceiveChannel receiveChannel){
+    private ConcurrentLinkedQueue<String> sqlQueue;
+    public OnceRequestTask(TcpMaster tcpMaster,RequestMsg requestMsg,ReceiveChannel receiveChannel,ConcurrentLinkedQueue<String> sqlQueue ){
         this.tcpMaster = tcpMaster;
         this.requestMsg = requestMsg;
         this.receiveChannel = receiveChannel;
+        this.sqlQueue = sqlQueue;
     }
     public void execute() throws InterruptedException {
         Modbus4jReader reader = new Modbus4jReader(tcpMaster);
@@ -42,12 +45,8 @@ public class OnceRequestTask extends Thread {
                 e.printStackTrace();
             }
         }
-        try {
-            receiveChannel.putOnceResolveTask(new OnceResolveTask(requestMsg.resolverMsg,buffer,receiveChannel));
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-/*        for(int i=0;i<buffer.length;i++){
+        receiveChannel.putOnceResolveTask(new OnceResolveTask(requestMsg.resolverMsg,buffer,receiveChannel,sqlQueue ));
+        /*        for(int i=0;i<buffer.length;i++){
             System.out.print(buffer[i]+" ");
         }*/
     }

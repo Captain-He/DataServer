@@ -6,13 +6,14 @@ import com.he.thread.ReceiveChannel;
 import com.he.thread.RequestMsg;
 import com.serotonin.modbus4j.ip.IpParameters;
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Client extends Thread{
     private final RequestChannel requestChannel;
     private final ReceiveChannel receiveChannel;
     private final ArrayList<TcpModbusMaster> tcpModbusMasters;
-
-    public Client(RequestChannel requestChannel, ReceiveChannel receiveChannel, ArrayList<ModbusSlave> modbusSlaves) {
+    private final ConcurrentLinkedQueue<String> sqlQueue;
+    public Client(RequestChannel requestChannel, ReceiveChannel receiveChannel, ConcurrentLinkedQueue<String> sqlQueue ,ArrayList<ModbusSlave> modbusSlaves) {
          ArrayList<TcpModbusMaster> tcpModbusMasters = new ArrayList<>();
         for (ModbusSlave modbusSlave: modbusSlaves) {
             //开始遍历modbusSlave
@@ -25,6 +26,7 @@ public class Client extends Thread{
         this.tcpModbusMasters = tcpModbusMasters;
         this.requestChannel = requestChannel;
         this.receiveChannel = receiveChannel;
+        this.sqlQueue = sqlQueue;
     }
     @Override
     public void run() {
@@ -33,10 +35,9 @@ public class Client extends Thread{
                 for(TcpModbusMaster tcpModbusMaster : tcpModbusMasters){
                     ArrayList<RequestMsg>requestMsgs = tcpModbusMaster.getRequestMsgs();
                     for(int i=0;i<requestMsgs.size();i++){
-                        requestChannel.putRequest(new OnceRequestTask(tcpModbusMaster.getTcpMaster(),requestMsgs.get(i),receiveChannel));
+                        requestChannel.putRequest(new OnceRequestTask(tcpModbusMaster.getTcpMaster(),requestMsgs.get(i),receiveChannel, sqlQueue ));
                     }
                 }
-               // System.out.println("\n" + Thread.currentThread().getName() + "******装载Request完毕********");
             } catch (Exception e) {
                 e.printStackTrace();
             }

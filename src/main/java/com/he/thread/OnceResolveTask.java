@@ -5,48 +5,48 @@ import com.he.DBConnectionPool.IConnectionPool;
 
 import java.sql.*;
 import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class OnceResolveTask {
     private final ResolverMsg resolverMsg;
     private final short[] buffer;
     private final ReceiveChannel receiveChannel;
-    private  IConnectionPool pool;
-    private  PreparedStatement stmt;
-    private  ResultSet rs;
+    private ConcurrentLinkedQueue<String> sqlQueue;
 
-
-    public OnceResolveTask(ResolverMsg resolverMsg, short[] buffer, ReceiveChannel receiveChannel) throws SQLException {
+    public OnceResolveTask(ResolverMsg resolverMsg, short[] buffer, ReceiveChannel receiveChannel, ConcurrentLinkedQueue<String> sqlQueue)  {
         this.resolverMsg = resolverMsg;
         this.buffer = buffer;
         this.receiveChannel = receiveChannel;
-        this.pool = ConnectionPoolManager.getInstance().getPool("testPool");
-        this.stmt = null;
-        this.rs = null;
+        this.sqlQueue = sqlQueue;
     }
 
-    public void execute() throws SQLException {
-        Connection conn = getConnection();
-
+    public void execute() {
         String[] aimStr = resolve();
-        String sql = "insert into ce(value1) values(?)";
-        stmt = conn.prepareStatement(sql);
 
-        for (int i = 0; i < aimStr.length; i++){
-            stmt.setString(1, aimStr[i]);
-            int result =stmt.executeUpdate();// 返回值代表收到影响的行数
-            System.out.println("插入成功"+result+"行");
+        for (int i = 0; i < aimStr.length; i++) {
+            sqlQueue.add(aimStr[i]);
         }
-
-        pool.releaseConn(conn);
-
     }
-    public Connection getConnection(){
-        Connection conn = null;
-        if(pool != null && pool.isActive()){
-            conn = pool.getConnection();
-        }
-        return conn;
-    }
+
+
+    /* public void execute() throws SQLException {
+         Connection conn = getConnection();
+
+         String[] aimStr = resolve();
+         String sql = "insert into ce(value1) values(?)";
+         stmt = conn.prepareStatement(sql);
+
+         for (int i = 0; i < aimStr.length; i++){
+             stmt.setString(1, aimStr[i]);
+             int result =stmt.executeUpdate();// 返回值代表收到影响的行数
+             System.out.println("插入成功"+result+"行");
+         }
+
+         pool.releaseConn(conn);
+
+     }*/
+
+
     private String[] resolve() {
         Map<String, String> resolverMap = resolverMsg.resolverMap;
         String aimStr[] = new String[resolverMap.size()];
@@ -55,7 +55,7 @@ public class OnceResolveTask {
             String sensorID = entry.getKey();
             String solver[] = ComIpSplit(entry.getValue(), " ");
             // solver[0] 集中器设备ID，slover[1]传感器设备ID，solver[2]数据项数量，从3开始到solver.length都是每个数据项的【】
-            aimStr[index] = solver[0] + "-";
+            aimStr[index] = "insert into ce(value1) values('"+solver[0] + "-";
             for (int i = 3; i < Integer.parseInt(solver[2]) + 3; i++) { //遍历项解析
                 String solverStr[] = ComIpSplit(solver[i], "/");
                 aimStr[index] += "item" + solverStr[0] + "-";
@@ -64,7 +64,8 @@ public class OnceResolveTask {
                 }
                 aimStr[index] += "-";
             }
-            aimStr[index++] += "";
+            aimStr[index++] += "')";
+            System.out.println(aimStr[index-1]);
         }
         return aimStr;
     }

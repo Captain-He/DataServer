@@ -1,7 +1,7 @@
 package com.he.thread;
 
 public class ReceiveChannel {
-    private static final int MAX_REQUEST = 100;
+    private static final int MAX_REQUEST = 10000;
     private final OnceResolveTask[] onceResolveTaskQueue;
     private int tail;
     private int head;

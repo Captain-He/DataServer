@@ -1,7 +1,7 @@
 package com.he.thread;
 
 public class RequestChannel {
-	private static final int MAX_REQUEST = 100;
+	private static final int MAX_REQUEST = 10000;
 	private final OnceRequestTask[] onceRequestTaskQueue;
 	private int tail;
 	private int head;

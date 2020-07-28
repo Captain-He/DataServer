@@ -1,4 +1,4 @@
-package com.he.thread;
+package com.he;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

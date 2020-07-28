@@ -4,14 +4,36 @@ import com.he.equipments.*;
 import com.he.thread.ReceiveChannel;
 import com.he.thread.RequestChannel;
 import com.he.thread.RequestMsg;
-import com.he.thread.TxtFileReader;
+import com.he.writefile.PutDataToFile;
+import com.he.writefile.WriteToDB;
 
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class
 
 App {
     public static void main(String[] args) {
+        FileWriter fw = null;
+        BufferedWriter bufw = null;
+        try {
+            File file = new File(System.getProperty("user.dir") + File.separator + "sql.txt");
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+            fw = new FileWriter(file, true);
+            bufw = new BufferedWriter(fw);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        ConcurrentLinkedQueue<String> sqlQueue = new ConcurrentLinkedQueue<>();
+       // new Thread(new PutDataToFile(sqlQueue, bufw)).start();
+        new Thread(new WriteToDB(sqlQueue)).start();
         ArrayList<CommunicationManager> communicationManagers = GetCommunicationManagers();
         for (CommunicationManager communicationManager : communicationManagers) {
             //开始遍历通信管理机，一个通信管理机对应多个ModbusSlave(通道抽象为ModbusSlave，下边连接多个集中器设备),
@@ -21,12 +43,8 @@ App {
             ReceiveChannel receiveChannel = new ReceiveChannel(communicationManager.getScNum());
             requestChannel.startWorkers();
             receiveChannel.startWorkers();
-            new Client(requestChannel, receiveChannel, communicationManager.getModbusSlaves()).start();
+            new Client(requestChannel, receiveChannel, sqlQueue,communicationManager.getModbusSlaves()).start();
         }
-      /* String str ="200026 300022  2 1/2/1/0.10000/SHORT 4/2/1/1.00000/USHORT " ;
-        String []splitArray = str.replaceAll("  "," ").split(" ");
-        for(int i=0;i<splitArray.length;i++)
-            System.out.println(splitArray[i]+"#");*/
     }
 
     public static ArrayList<CommunicationManager> GetCommunicationManagers() {
