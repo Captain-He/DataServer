@@ -1,6 +1,7 @@
 package com.he;
 
 import com.he.equipments.*;
+import com.he.socket.SocketServerListenHandler;
 import com.he.thread.Channel;
 import com.he.thread.RequestMsg;
 import com.he.thread.ResolverMsg;
@@ -50,12 +51,13 @@ public class App {
         for (CommunicationManager communicationManager : communicationManagers) {
             Channel channel = new Channel(communicationManager.getScNum());//此处参数为工人线程数量由通道数量决定，一个通信管理机对应一个channel
             channel.startWorkers();
-            new Client(channel,communicationManager).start();
+            SocketServerListenHandler socketServerListenHandler = new SocketServerListenHandler(512,channel,communicationManager);
+            socketServerListenHandler.listenClientConnect();
         }
 
     }
 
-    public static  ArrayList<CommunicationManager> GetCommunicationManagers() {
+    public  static ArrayList<CommunicationManager> GetCommunicationManagers() {
         ArrayList<CommunicationManager> communicationManagers = new ArrayList<>();
         for (int i = 0; i < dpu_list.length; i++) {
             String temp[] = dpu_list[i].split(" ");
@@ -78,7 +80,7 @@ public class App {
         }
         return communicationManagers;
     }
-    public static CommunicationManagerCom getCManagerCom(String communicationManagerID, int id, String communicationManagerComIP, int chuanId) {
+    public  static CommunicationManagerCom getCManagerCom(String communicationManagerID, int id, String communicationManagerComIP, int chuanId) {
         CommunicationManagerCom newDev = new CommunicationManagerCom();
         for (int i = 0; i < dev_link.length; i++) { //i表示文件的行
             String temp[] = dev_link[i].split(" "); //对每一行进行空格分割
@@ -100,7 +102,7 @@ public class App {
         }
         return newDev;
     }
-    private static ArrayList<PowerMeter> GetPowerMeters(String communicationManagerComIP, int chuanId, String[] tempMsg,TcpMaster tcpMaster) {
+    private  static ArrayList<PowerMeter> GetPowerMeters(String communicationManagerComIP, int chuanId, String[] tempMsg,TcpMaster tcpMaster) {
         TxtFileReader readTxt = new TxtFileReader();
         ArrayList<PowerMeter> powerMeters = new ArrayList<>();
         for (int q = 7; q < tempMsg.length; q++) {
@@ -161,7 +163,7 @@ public class App {
     }
 
     //串口编号/IP地址/端口 分割
-    private static String[] ComIpSplit(String str) {
+    private static  String[] ComIpSplit(String str) {
         String splitArray[] = {};
         if ((str != null) && (!isEquals(str, "-"))) {
             splitArray = str.split("/");
@@ -170,7 +172,7 @@ public class App {
     }
 
     //判断字符串a 是否与 字符串b 相等
-    private static boolean isEquals(String a, String b) {
+    private  static boolean isEquals(String a, String b) {
         return a.replaceAll("\n", "").replaceAll(" ", "").equals(b);
     }
 }

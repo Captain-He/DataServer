@@ -12,6 +12,7 @@ public class TemperConcentrator extends ConcentratorDevice {
 		this.deviceType= deviceType;
 	}
 	public String getDeviceType(){
+
 		return deviceType;
 	}
 

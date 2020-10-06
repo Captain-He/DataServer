@@ -17,7 +17,7 @@ public class DBInitInfo {
         // 为了测试，这里我直接写死
         DBbean beanOracle = new DBbean();
         beanOracle.setDriverName("com.mysql.jdbc.Driver");
-        beanOracle.setUrl("jdbc:mysql://127.0.0.1:3306/test?characterEncoding=UTF-8");
+        beanOracle.setUrl("jdbc:mysql://127.0.0.1:3306/TcpListener?characterEncoding=UTF-8");
         beanOracle.setUserName("root");
         beanOracle.setPassword("root");
 
