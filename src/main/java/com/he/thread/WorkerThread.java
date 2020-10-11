@@ -11,8 +11,13 @@ public class WorkerThread extends Thread{
 	@Override
 	public void run(){
 		while(true){
-			ConcentratorDevice concentratorDevice = channel.takeRequest();
-			concentratorDevice.execute();
+			System.out.println("工作线程 标志");
+			RequestMsg requestMsg = channel.takeRequest();
+			try {
+				requestMsg.resolverMsg.resolve(requestMsg.Request());
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 }

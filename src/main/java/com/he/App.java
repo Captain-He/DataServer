@@ -1,16 +1,13 @@
 package com.he;
 
 import com.he.equipments.*;
-import com.he.socket.SocketServerListenHandler;
+import com.he.socket.RegisteredDevContainer;
+import com.he.socket.SocketServerListen;
 import com.he.thread.Channel;
+import com.he.thread.Client;
 import com.he.thread.RequestMsg;
 import com.he.thread.ResolverMsg;
 import com.he.writefile.PutDataToFile;
-import com.he.writefile.WriteToDB;
-
-import com.serotonin.modbus4j.ModbusFactory;
-import com.serotonin.modbus4j.ip.IpParameters;
-import com.serotonin.modbus4j.ip.tcp.TcpMaster;
 
 
 import java.io.BufferedWriter;
@@ -27,10 +24,8 @@ public class App {
     public static String dpu_list[] = TxtFileReader.toArrayByFileReader1(".\\src\\main\\java\\com\\he\\txt\\dpu_list.txt");
     public static String dev_link[] = TxtFileReader.toArrayByFileReader1(".\\src\\main\\java\\com\\he\\txt\\dev_link.txt");
     public static String concentrator_list[] = TxtFileReader.toArrayByFileReader1(".\\src\\main\\java\\com\\he\\txt\\concentrator_list.txt");
-    private static ModbusFactory modbusFcactory =  new ModbusFactory();
 
     public static void main(String[] args) {
-        ArrayList<CommunicationManager> communicationManagers = GetCommunicationManagers();
         FileWriter fw = null;
         BufferedWriter bufw = null;
 
@@ -48,13 +43,7 @@ public class App {
         new Thread(new PutDataToFile(sqlQueue, bufw)).start();
         //new Thread(new WriteToDB(sqlQueue)).start();
 
-        for (CommunicationManager communicationManager : communicationManagers) {
-            Channel channel = new Channel(communicationManager.getScNum());//此处参数为工人线程数量由通道数量决定，一个通信管理机对应一个channel
-            channel.startWorkers();
-            SocketServerListenHandler socketServerListenHandler = new SocketServerListenHandler(512,channel,communicationManager);
-            socketServerListenHandler.listenClientConnect();
-        }
-
+        new SocketServerListen().service();
     }
 
     public  static ArrayList<CommunicationManager> GetCommunicationManagers() {
@@ -86,23 +75,19 @@ public class App {
             String temp[] = dev_link[i].split(" "); //对每一行进行空格分割
             if (temp[0].isEmpty() || temp[0] == null) continue;
             if (isEquals(communicationManagerID, temp[4]) && id == Integer.parseInt(temp[5])) {
-                IpParameters params = new IpParameters();
-                params.setHost(communicationManagerComIP);// 设置ip
-                params.setPort(chuanId);
-                TcpMaster tcpMaster = (TcpMaster)modbusFcactory.createTcpMaster(params, true);
                 newDev.setId(id);
                 newDev.setCommunicationMaganerID(Integer.parseInt(temp[4]));
                 newDev.setDevNum(Integer.parseInt(temp[6]));
                 newDev.setCommunicationManagerComIP(communicationManagerComIP);
                 newDev.setChuanID(chuanId);
-                newDev.setPowerMeters(GetPowerMeters(communicationManagerComIP, chuanId, temp,tcpMaster));
-                newDev.setTemperConcentrator(GetTemperConcentrators(communicationManagerComIP, chuanId, temp,tcpMaster));
+                newDev.setPowerMeters(GetPowerMeters(communicationManagerComIP, chuanId, temp));
+                newDev.setTemperConcentrator(GetTemperConcentrators(communicationManagerComIP, chuanId, temp));
                 break;
             }
         }
         return newDev;
     }
-    private  static ArrayList<PowerMeter> GetPowerMeters(String communicationManagerComIP, int chuanId, String[] tempMsg,TcpMaster tcpMaster) {
+    private  static ArrayList<PowerMeter> GetPowerMeters(String communicationManagerComIP, int chuanId, String[] tempMsg) {
         TxtFileReader readTxt = new TxtFileReader();
         ArrayList<PowerMeter> powerMeters = new ArrayList<>();
         for (int q = 7; q < tempMsg.length; q++) {
@@ -112,19 +97,17 @@ public class App {
                 if (temp[0].isEmpty() || temp[0] == null) continue;
                 if (100000 < Integer.parseInt(temp[0]) && Integer.parseInt(temp[0]) < 200000 && ConcentratorDeivceID == Integer.parseInt(temp[0])) {
                    // System.out.format("%d###%d", ConcentratorDeivceID, Integer.parseInt(temp[0]));
-                    PowerMeter newDev = new PowerMeter(tcpMaster);
+                    PowerMeter newDev = new PowerMeter();
                     newDev.setId(Integer.parseInt(temp[0]));
                     newDev.setComNum(temp[1]);
                     newDev.setSlaveAddress(Integer.parseInt(temp[7]));
                     newDev.setReadTimes(Integer.parseInt(temp[8]));
-                    newDev.setSqlQueue(sqlQueue);
-                    newDev.setResolverMsg(new ResolverMsg(Integer.parseInt(temp[0]),sensor_dev_list));
                     String[][] readMessage = new String[temp.length - 9][4];
                     for (int j = 9; j < Integer.parseInt(temp[8]) + 9; j++) {
                         readMessage[j - 9] = ComIpSplit(temp[j]);
                     }
                     newDev.setMapRelation(readMessage);
-                    RequestMsg requestMsg = new RequestMsg(communicationManagerComIP, chuanId, Integer.parseInt(temp[0]), Integer.parseInt(temp[7]), Integer.parseInt(temp[8]), readMessage);
+                    RequestMsg requestMsg = new RequestMsg(communicationManagerComIP, chuanId, Integer.parseInt(temp[0]), Integer.parseInt(temp[7]), Integer.parseInt(temp[8]), readMessage,new ResolverMsg(Integer.parseInt(temp[0]),sensor_dev_list,sqlQueue));
                     newDev.setRequestMsg(requestMsg);
                     powerMeters.add(newDev);
                 }
@@ -133,7 +116,7 @@ public class App {
 
         return powerMeters;
     }
-    private static ArrayList<TemperConcentrator> GetTemperConcentrators(String communicationManagerComIP, int chuanId, String[] tempMsg,TcpMaster tcpMaster) {
+    private static ArrayList<TemperConcentrator> GetTemperConcentrators(String communicationManagerComIP, int chuanId, String[] tempMsg) {
         ArrayList<TemperConcentrator> temperConcentrators = new ArrayList<>();
         for (int q = 7; q < tempMsg.length; q++) {
             int ConcentratorDeivceID = Integer.parseInt(tempMsg[q]);
@@ -141,18 +124,16 @@ public class App {
                 String temp[] = concentrator_list[i].split(" "); //对每一行进行空格分割
                 if (temp[0].isEmpty() || temp[0] == null) continue;
                 if (300000 < Integer.parseInt(temp[0]) && Integer.parseInt(temp[0]) < 400000 && ConcentratorDeivceID == Integer.parseInt(temp[0])) {
-                    TemperConcentrator newDev = new TemperConcentrator(tcpMaster);
+                    TemperConcentrator newDev = new TemperConcentrator();
                     newDev.setId(Integer.parseInt(temp[0]));
                     newDev.setComNum(temp[1]);
                     newDev.setSlaveAddress(Integer.parseInt(temp[7]));
                     newDev.setReadTimes(Integer.parseInt(temp[8]));
-                    newDev.setSqlQueue(sqlQueue);
-                    newDev.setResolverMsg(new ResolverMsg(Integer.parseInt(temp[0]),sensor_dev_list));
                     String[][] readMessage = new String[temp.length - 9][4];
                     for (int j = 9; j < Integer.parseInt(temp[8]) + 9; j++) {
                         readMessage[j - 9] = ComIpSplit(temp[j]);
                     }
-                    RequestMsg requestMsg = new RequestMsg(communicationManagerComIP, chuanId, Integer.parseInt(temp[0]), Integer.parseInt(temp[7]), Integer.parseInt(temp[8]), readMessage);
+                    RequestMsg requestMsg = new RequestMsg(communicationManagerComIP, chuanId, Integer.parseInt(temp[0]), Integer.parseInt(temp[7]), Integer.parseInt(temp[8]), readMessage,new ResolverMsg(Integer.parseInt(temp[0]),sensor_dev_list,sqlQueue));
                     newDev.setRequestMsg(requestMsg);
                     newDev.setMapRelation(readMessage);
                     temperConcentrators.add(newDev);

@@ -4,14 +4,14 @@ import com.he.equipments.ConcentratorDevice;
 
 public class Channel {
 	private static final int MAX_REQUEST = 100;
-	private final ConcentratorDevice[] concentratorDeviceQueue;
+	private final RequestMsg[] requestMsgQueue;
 	private int tail;
 	private int head;
 	private int count;
 	
 	private final WorkerThread threadPool[];
 	public Channel(int threads){
-		this.concentratorDeviceQueue = new ConcentratorDevice[MAX_REQUEST];
+		this.requestMsgQueue = new RequestMsg[MAX_REQUEST];
 		this.head = 0;
 		this.tail = 0;
 		this.count = 0;
@@ -25,30 +25,30 @@ public class Channel {
 			threadPool[i].start();
 		}
 	}
-	public synchronized void putRequest(ConcentratorDevice concentratorDevice){
-		while(count>= concentratorDeviceQueue.length){
+	public synchronized void putRequest(RequestMsg requestMsg){
+		while(count>= requestMsgQueue.length){
 			try{
 				wait();
 			}catch(InterruptedException e){
 				
 			}
 		}
-		concentratorDeviceQueue[tail] = concentratorDevice;
-		tail = (tail + 1)% concentratorDeviceQueue.length;
+		requestMsgQueue[tail] = requestMsg;
+		tail = (tail + 1)% requestMsgQueue.length;
 		count++;
 		notifyAll();
 	}
-	public synchronized ConcentratorDevice takeRequest(){
+	public synchronized RequestMsg takeRequest(){
 		while(count <=0){
 			try{
 				wait();
 			}catch(InterruptedException e){
 			}
 		}
-		ConcentratorDevice concentratorDevice = concentratorDeviceQueue[head];
-		head = (head+1)% concentratorDeviceQueue.length;
+		RequestMsg requestMsg = requestMsgQueue[head];
+		head = (head+1)% requestMsgQueue.length;
 		count --;
 		notifyAll();
-		return concentratorDevice;
+		return requestMsg;
 	}
 }
