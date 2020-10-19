@@ -31,5 +31,5 @@ public class SocketServerListen {
             }
         }
     }
-    public static void main(String[] args) {new SocketServerListen().service();}
+   // public static void main(String[] args) {new SocketServerListen().service();}
 }

@@ -43,7 +43,7 @@ public final Map<String,String>resolverMap;
             String sensorID = entry.getKey();
             String solver[] = ComIpSplit(entry.getValue(), " ");
             // solver[0] 集中器设备ID，slover[1]传感器设备ID，solver[2]数据项数量，从3开始到solver.length都是每个数据项的【】
-            aimStr[index] = "INSERT INTO sensorData (SourceAddr,GroupAddr,samplingTime,item1,item2,item3,item4,item5,item6,item7,item8,item9,item10,item11,item12,item13,item14,item15,item16,item17,item18,item19,item20,item21,item22,item23,item24,item25,item26,item27,item28,item29,item30,item31,item32,item33,item34,item35,item36,item37,item38,item39,item40,item41,item42,item43,item44,item45,item46,item47,item48,item49,item50) VALUES ('"+solver[0];
+            aimStr[index] = "INSERT INTO sensorData (SourceAddr,groupAddr,item1,item2,item3,item4,item5,item6,item7,item8,item9,item10,item11,item12,item13,item14,item15,item16,item17,item18,item19,item20,item21,item22,item23,item24,item25,item26,item27,item28,item29,item30,item31,item32,item33,item34,item35,item36,item37,item38,item39,item40,item41,item42,item43,item44,item45,item46,item47,item48,item49,item50) VALUES ("+solver[0];
             Arrays.fill(sigleAimStr, (short) -1);
             for (int i = 3; i < Integer.parseInt(solver[2]) + 3; i++) { //遍历项解析
                 String solverStr[] = ComIpSplit(solver[i], "/");
@@ -54,6 +54,7 @@ public final Map<String,String>resolverMap;
                 }
                 sigleAimStr[Integer.parseInt(solverStr[0])] = temp;
             }
+            aimStr[index]+=",0";
             for(int i=1;i<51;i++){
                 aimStr[index]+=",";
                 if(sigleAimStr[i] == -1){

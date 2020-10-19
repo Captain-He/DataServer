@@ -22,48 +22,27 @@ public class WriteToDB implements Runnable {
     }
 
     public void run() {
-        //设置批量处理的数量
-        int batchSize = 100;
+        Statement st = null;
         try {
-            stmt = conn.prepareStatement("insert into ce (value1) "
-                    + "values (?)");
-            // 关闭事务自动提交 ,这一行必须加上
-            conn.setAutoCommit(false);
+            st = conn.createStatement();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         while (true) {
             if (!queue.isEmpty()) {
-                int i = 0;
-                try {
 
-                    for (int j = 0; j < 101; j++) {
-                        String temp = queue.poll();
-                        if( temp == null){
-                            j++;
-                        }else{
-                            ++i;
-                            stmt.setString(1, temp);
-                            stmt.addBatch();
-                            if (i % batchSize == 0) {
-                                stmt.executeBatch();
-                                conn.commit();
-                            }
-                        }
+                String temp = queue.poll();
+                if (temp != null) {
+                    try {
+                        st.execute(temp);
+                    } catch (SQLException e) {
+                        e.printStackTrace();
                     }
-                    if (i % batchSize != 0) {
-                        stmt.executeBatch();
-                        conn.commit();
-                    }
-                } catch (SQLException e) {
-                    e.printStackTrace();
                 }
             }
         }
     }
-
-    public Connection getConnection() {
+        public Connection getConnection() {
         Connection conn = null;
         if (pool != null && pool.isActive()) {
             conn = pool.getConnection();
