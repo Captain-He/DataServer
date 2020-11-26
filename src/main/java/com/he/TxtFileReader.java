@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class TxtFileReader {
     public static String[] toArrayByFileReader1(String name) {/* 使用ArrayList来存储每行读取到的字符串*/
-        ArrayList<String> arrayList = new ArrayList<>();
+        ArrayList<String> arrayList = new ArrayList<String>();
         try {
             FileReader fr = new FileReader(name);
             BufferedReader bf = new BufferedReader(fr);

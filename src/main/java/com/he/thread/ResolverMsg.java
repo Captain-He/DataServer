@@ -1,6 +1,7 @@
 package com.he.thread;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -11,7 +12,7 @@ public final Map<String,String>resolverMap;
 
     public ResolverMsg(int ConcentratorDevideID, String []resolverFromTxt,ConcurrentLinkedQueue<String> sqlQueue){
         this.sqlQueue = sqlQueue;
-        Map<String,String>resolverMap = new HashMap<>();
+        Map<String,String>resolverMap = new HashMap<String, String>();
         if(ConcentratorDevideID>100000&&ConcentratorDevideID<200000){
             for(int i=0;i<resolverFromTxt.length;i++){
                 if(resolverFromTxt[i] == null||resolverFromTxt[i] == "")continue;
@@ -43,7 +44,7 @@ public final Map<String,String>resolverMap;
             String sensorID = entry.getKey();
             String solver[] = ComIpSplit(entry.getValue(), " ");
             // solver[0] 集中器设备ID，slover[1]传感器设备ID，solver[2]数据项数量，从3开始到solver.length都是每个数据项的【】
-            aimStr[index] = "INSERT INTO sensorData (SourceAddr,groupAddr,item1,item2,item3,item4,item5,item6,item7,item8,item9,item10,item11,item12,item13,item14,item15,item16,item17,item18,item19,item20,item21,item22,item23,item24,item25,item26,item27,item28,item29,item30,item31,item32,item33,item34,item35,item36,item37,item38,item39,item40,item41,item42,item43,item44,item45,item46,item47,item48,item49,item50) VALUES ("+solver[0];
+            aimStr[index] = solver[0];
             Arrays.fill(sigleAimStr, (short) -1);
             for (int i = 3; i < Integer.parseInt(solver[2]) + 3; i++) { //遍历项解析
                 String solverStr[] = ComIpSplit(solver[i], "/");
@@ -54,21 +55,21 @@ public final Map<String,String>resolverMap;
                 }
                 sigleAimStr[Integer.parseInt(solverStr[0])] = temp;
             }
-            aimStr[index]+=",0";
+            aimStr[index]+=" 0x00";
+            aimStr[index]+=" "+getTimestamp(new Date());
             for(int i=1;i<51;i++){
-                aimStr[index]+=",";
+                aimStr[index]+=" ";
                 if(sigleAimStr[i] == -1){
-                    aimStr[index]+="0";
+                    aimStr[index]+="0x00";
                 }else{
                     aimStr[index]+=sigleAimStr[i];
                 }
             }
-            aimStr[index]+=")";
             System.out.println(aimStr[index]);
             index++;
         }
         for (int i = 0; i < aimStr.length; i++) {
-            sqlQueue.add(aimStr[i]);
+            sqlQueue.add(StrToBinstr(aimStr[i]));
         }
     }
     private static String[] ComIpSplit(String str, String splitChar) {	//串口编号/IP地址/端口 分割
@@ -89,5 +90,26 @@ public final Map<String,String>resolverMap;
     //判断字符串a 是否与 字符串b 相等
     private static boolean isEquals(String a,String b){
         return a.replaceAll("\n", "").replaceAll(" ", "").equals(b);
+    }
+    /**
+     获取精确到毫秒的时间戳
+     * @param date
+     * @return
+     **/
+    public static Long getTimestamp(Date date){
+        if (null == date) {
+            return (long) 0;
+        }
+        String timestamp = String.valueOf(date.getTime());
+        return Long.valueOf(timestamp);
+    }
+    // 将字符串转换成二进制字符串，以空格相隔
+    private String StrToBinstr(String str) {
+        char[] strChar = str.toCharArray();
+        String result = "";
+        for (int i = 0; i < strChar.length; i++) {
+            result += Integer.toBinaryString(strChar[i]);
+        }
+        return result;
     }
 }

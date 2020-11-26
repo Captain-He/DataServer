@@ -8,6 +8,7 @@ import com.he.thread.Client;
 import com.he.thread.RequestMsg;
 import com.he.thread.ResolverMsg;
 import com.he.writefile.PutDataToFile;
+import com.he.writefile.WriteFileClient;
 
 
 import java.io.BufferedWriter;
@@ -19,35 +20,21 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class App {
 
-    public static ConcurrentLinkedQueue<String> sqlQueue = new ConcurrentLinkedQueue<>();
+    public static ConcurrentLinkedQueue<String> sqlQueue = new ConcurrentLinkedQueue<String>();
     public static String sensor_dev_list[] = TxtFileReader.toArrayByFileReader1(".\\src\\main\\java\\com\\he\\txt\\sensor_dev_list.txt");
     public static String dpu_list[] = TxtFileReader.toArrayByFileReader1(".\\src\\main\\java\\com\\he\\txt\\dpu_list.txt");
     public static String dev_link[] = TxtFileReader.toArrayByFileReader1(".\\src\\main\\java\\com\\he\\txt\\dev_link.txt");
     public static String concentrator_list[] = TxtFileReader.toArrayByFileReader1(".\\src\\main\\java\\com\\he\\txt\\concentrator_list.txt");
 
     public static void main(String[] args) {
-        FileWriter fw = null;
-        BufferedWriter bufw = null;
 
-        try {
-            File file = new File(System.getProperty("user.dir") + File.separator + "sql.txt");
-            if (!file.exists()) {
-                file.createNewFile();
-            }
-            fw = new FileWriter(file, true);
-            bufw = new BufferedWriter(fw);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        new Thread(new PutDataToFile(sqlQueue, bufw)).start();
         //new Thread(new WriteToDB(sqlQueue)).start();
-
+       // new WriteFileClient().service();
         new SocketServerListen().service();
     }
 
     public  static ArrayList<CommunicationManager> GetCommunicationManagers() {
-        ArrayList<CommunicationManager> communicationManagers = new ArrayList<>();
+        ArrayList<CommunicationManager> communicationManagers = new ArrayList<CommunicationManager>();
         for (int i = 0; i < dpu_list.length; i++) {
             String temp[] = dpu_list[i].split(" ");
             CommunicationManager newDev = new CommunicationManager();
@@ -56,7 +43,7 @@ public class App {
             newDev.setTerminal(temp[1]);
             newDev.setScNum(temp[2]);
             String[][] comIp = new String[temp.length - 3][3];
-            ArrayList<CommunicationManagerCom> communicationManagerComs = new ArrayList<>();
+            ArrayList<CommunicationManagerCom> communicationManagerComs = new ArrayList<CommunicationManagerCom>();
             for (int j = 3; j < Integer.parseInt(temp[2]) + 3; j++) {
                 comIp[j - 3] = ComIpSplit(temp[j]);
                 CommunicationManagerCom communicationManagerCom = getCManagerCom(temp[0], j - 2, comIp[j - 3][1], Integer.parseInt(comIp[j - 3][2]));
@@ -89,7 +76,7 @@ public class App {
     }
     private  static ArrayList<PowerMeter> GetPowerMeters(String communicationManagerComIP, int chuanId, String[] tempMsg) {
         TxtFileReader readTxt = new TxtFileReader();
-        ArrayList<PowerMeter> powerMeters = new ArrayList<>();
+        ArrayList<PowerMeter> powerMeters = new ArrayList<PowerMeter>();
         for (int q = 7; q < tempMsg.length; q++) {
             int ConcentratorDeivceID = Integer.parseInt(tempMsg[q]);
             for (int i = 0; i < concentrator_list.length; i++) { //i表示文件的行
@@ -117,7 +104,7 @@ public class App {
         return powerMeters;
     }
     private static ArrayList<TemperConcentrator> GetTemperConcentrators(String communicationManagerComIP, int chuanId, String[] tempMsg) {
-        ArrayList<TemperConcentrator> temperConcentrators = new ArrayList<>();
+        ArrayList<TemperConcentrator> temperConcentrators = new ArrayList<TemperConcentrator>();
         for (int q = 7; q < tempMsg.length; q++) {
             int ConcentratorDeivceID = Integer.parseInt(tempMsg[q]);
             for (int i = 0; i < concentrator_list.length; i++) { //i表示文件的行

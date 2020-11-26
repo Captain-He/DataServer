@@ -53,8 +53,6 @@ public class SocketClient implements Runnable {     //负责与单个客户端�
         return "Hello:" + msg;
     }
 
-    @Override
-
     public void run() {
         try {
             System.out.println("New Connection accepted,and the address is" + socket.getInetAddress() + ", and the port is " + socket.getLocalPort());
@@ -74,7 +72,7 @@ public class SocketClient implements Runnable {     //负责与单个客户端�
                                 client.start();
                             }
                             System.out.println("注册总线ip: " + msg);
-                            ArrayList<ConcentratorDevice> devList = new ArrayList<>();
+                            ArrayList<ConcentratorDevice> devList = new ArrayList<ConcentratorDevice>();
                             for (PowerMeter powerMeter : communicationManagerCom.getPowerMeters()) {
                                 devList.add(powerMeter);
                             }
