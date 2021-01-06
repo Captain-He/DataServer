@@ -1,26 +1,20 @@
 package com.he;
 
 import com.he.equipments.*;
-import com.he.socket.RegisteredDevContainer;
 import com.he.socket.SocketServerListen;
-import com.he.thread.Channel;
-import com.he.thread.Client;
 import com.he.thread.RequestMsg;
 import com.he.thread.ResolverMsg;
-import com.he.writefile.PutDataToFile;
+import com.he.txt.TxtFileReader;
 import com.he.writefile.WriteFileClient;
 
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class App {
 
-    public static ConcurrentLinkedQueue<String> sqlQueue = new ConcurrentLinkedQueue<String>();
+    public static LinkedBlockingQueue bufQueue = new LinkedBlockingQueue(10000);
     public static String sensor_dev_list[] = TxtFileReader.toArrayByFileReader1(".\\src\\main\\java\\com\\he\\txt\\sensor_dev_list.txt");
     public static String dpu_list[] = TxtFileReader.toArrayByFileReader1(".\\src\\main\\java\\com\\he\\txt\\dpu_list.txt");
     public static String dev_link[] = TxtFileReader.toArrayByFileReader1(".\\src\\main\\java\\com\\he\\txt\\dev_link.txt");
@@ -30,7 +24,9 @@ public class App {
 
         //new Thread(new WriteToDB(sqlQueue)).start();
        // new WriteFileClient().service();
+        new Thread(new WriteFileClient(bufQueue)).start();
         new SocketServerListen().service();
+
     }
 
     public  static ArrayList<CommunicationManager> GetCommunicationManagers() {
@@ -75,7 +71,6 @@ public class App {
         return newDev;
     }
     private  static ArrayList<PowerMeter> GetPowerMeters(String communicationManagerComIP, int chuanId, String[] tempMsg) {
-        TxtFileReader readTxt = new TxtFileReader();
         ArrayList<PowerMeter> powerMeters = new ArrayList<PowerMeter>();
         for (int q = 7; q < tempMsg.length; q++) {
             int ConcentratorDeivceID = Integer.parseInt(tempMsg[q]);
@@ -94,7 +89,7 @@ public class App {
                         readMessage[j - 9] = ComIpSplit(temp[j]);
                     }
                     newDev.setMapRelation(readMessage);
-                    RequestMsg requestMsg = new RequestMsg(communicationManagerComIP, chuanId, Integer.parseInt(temp[0]), Integer.parseInt(temp[7]), Integer.parseInt(temp[8]), readMessage,new ResolverMsg(Integer.parseInt(temp[0]),sensor_dev_list,sqlQueue));
+                    RequestMsg requestMsg = new RequestMsg(communicationManagerComIP, chuanId, Integer.parseInt(temp[0]), Integer.parseInt(temp[7]), Integer.parseInt(temp[8]), readMessage,new ResolverMsg(Integer.parseInt(temp[0]),sensor_dev_list,bufQueue));
                     newDev.setRequestMsg(requestMsg);
                     powerMeters.add(newDev);
                 }
@@ -120,7 +115,7 @@ public class App {
                     for (int j = 9; j < Integer.parseInt(temp[8]) + 9; j++) {
                         readMessage[j - 9] = ComIpSplit(temp[j]);
                     }
-                    RequestMsg requestMsg = new RequestMsg(communicationManagerComIP, chuanId, Integer.parseInt(temp[0]), Integer.parseInt(temp[7]), Integer.parseInt(temp[8]), readMessage,new ResolverMsg(Integer.parseInt(temp[0]),sensor_dev_list,sqlQueue));
+                    RequestMsg requestMsg = new RequestMsg(communicationManagerComIP, chuanId, Integer.parseInt(temp[0]), Integer.parseInt(temp[7]), Integer.parseInt(temp[8]), readMessage,new ResolverMsg(Integer.parseInt(temp[0]),sensor_dev_list,bufQueue));
                     newDev.setRequestMsg(requestMsg);
                     newDev.setMapRelation(readMessage);
                     temperConcentrators.add(newDev);

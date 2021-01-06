@@ -1,5 +1,7 @@
 package com.he.writefile;
 
+import com.he.readToDB.ReadToDbClient;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -20,7 +22,7 @@ public class WriteFileClient extends Thread{
     }
     @Override
     public void run() {
-
+int t = 0;
            FileOutputStream fos = null;
            FileChannel outChannel = null;
             int i=1;
@@ -30,11 +32,13 @@ public class WriteFileClient extends Thread{
                         String dir = getFilePath("DataFile" + i);
                         fos = new FileOutputStream(dir);
                         outChannel = fos.getChannel();
-
-                        while ((getFileOrFilesSize(dir,3)< 256)) {
+//166 * 1000000 166M级 *3 =300 0000 1个文件存300万条
+                        while ((getFileOrFilesSize(dir,1)<124*7*1000 )) {
                             ByteBuffer buf = (ByteBuffer) bufQueue.take();
                             buf.flip();
                             outChannel.write(buf);
+                            System.out.println(t++);
+                            System.out.println(ReadToDbClient.toString(new String(buf.array())));
                             buf.clear();
                         }
                         i++;

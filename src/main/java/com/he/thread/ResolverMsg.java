@@ -1,17 +1,19 @@
 package com.he.thread;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class ResolverMsg {
 public final Map<String,String>resolverMap;
-    private ConcurrentLinkedQueue<String> sqlQueue;
+    private LinkedBlockingQueue bufQueue;
 
-    public ResolverMsg(int ConcentratorDevideID, String []resolverFromTxt,ConcurrentLinkedQueue<String> sqlQueue){
-        this.sqlQueue = sqlQueue;
+    public ResolverMsg(int ConcentratorDevideID, String []resolverFromTxt, LinkedBlockingQueue bufQueue){
+        this.bufQueue = bufQueue;
         Map<String,String>resolverMap = new HashMap<String, String>();
         if(ConcentratorDevideID>100000&&ConcentratorDevideID<200000){
             for(int i=0;i<resolverFromTxt.length;i++){
@@ -55,21 +57,27 @@ public final Map<String,String>resolverMap;
                 }
                 sigleAimStr[Integer.parseInt(solverStr[0])] = temp;
             }
-            aimStr[index]+=" 0x00";
+            aimStr[index]+=" 0";
             aimStr[index]+=" "+getTimestamp(new Date());
             for(int i=1;i<51;i++){
-                aimStr[index]+=" ";
+
                 if(sigleAimStr[i] == -1){
-                    aimStr[index]+="0x00";
+                    aimStr[index]+=" "+0;
                 }else{
-                    aimStr[index]+=sigleAimStr[i];
+                    aimStr[index]+=" "+sigleAimStr[i];
                 }
             }
-            System.out.println(aimStr[index]);
             index++;
         }
         for (int i = 0; i < aimStr.length; i++) {
-            sqlQueue.add(StrToBinstr(aimStr[i]));
+            //System.out.println(toBinary(aimStr[i]));
+            ByteBuffer buf = ByteBuffer.allocate(aimStr[i].length()*7);
+            System.out.println(aimStr[i].length()*8);
+            byte[] temp=toBinary(aimStr[i]).getBytes();
+            //while(buf.position()+temp.length < buf.capacity() ) {//需按一条容量修改
+                buf.put(temp);
+            //}
+            bufQueue.add(buf);
         }
     }
     private static String[] ComIpSplit(String str, String splitChar) {	//串口编号/IP地址/端口 分割
@@ -102,6 +110,24 @@ public final Map<String,String>resolverMap;
         }
         String timestamp = String.valueOf(date.getTime());
         return Long.valueOf(timestamp);
+    }
+    /**
+     * 字符串转换为二进制字符串
+     * @param str
+     * @return
+     */
+    private static String toBinary(String str){
+        //把字符串转成字符数组
+        char[] strChar=str.toCharArray();
+        String result="";
+        for(int i=0;i<strChar.length;i++){
+            //toBinaryString(int i)返回变量的二进制表示的字符串
+            //toHexString(int i) 八进制
+            //toOctalString(int i) 十六进制
+            result +=Integer.toBinaryString(strChar[i])+ " ";
+        }
+        //System.out.println(result);
+        return result;
     }
     // 将字符串转换成二进制字符串，以空格相隔
     private String StrToBinstr(String str) {
